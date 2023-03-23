@@ -16,11 +16,11 @@
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 Adafruit_NeoPixel ring = Adafruit_NeoPixel(21, PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN1, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel conduitLeds = Adafruit_NeoPixel(8, PIN1, NEO_GRB + NEO_KHZ800);
 // Adafruit_NeoPixel meter = Adafruit_NeoPixel(3, PIN2, NEO_RGBW + NEO_KHZ800);
 
 // 10 sec. wait time between pattern changes
-unsigned long interval = 10000;
+unsigned long interval = 5000;
 // millis() returns an unsigned long.
 unsigned long previousMillis = 0;
 
@@ -32,14 +32,16 @@ unsigned long patternInterval = 5;
 // for millis() when last update occoured
 unsigned long lastUpdate = 0;                                    
 // speed for each pattern
-unsigned long intervals[] = {20, 20, 20, 20, 20, 20, 20, 20, 20};
+unsigned long intervals[] = {10};
 
 void colorWipe(uint32_t c);
 void pokeball();
 void greatball();
 void ultraball();
-void theaterChaseRainbow();
+void theaterChaseRainbow(uint8_t wait);
 void rainbowCycle();
+void wipe();
+
 uint32_t Wheel(byte WheelPos);
 
 void changePattern(int pat) {
@@ -47,7 +49,7 @@ void changePattern(int pat) {
   switch (pat)
   {
   case 0:
-    colorWipe(ring.Color(0, 255, 0, 0)); // Red
+    colorWipe(ring.Color(255, 0, 0, 0)); // Red
     break;
   case 1:
     pokeball();
@@ -59,49 +61,50 @@ void changePattern(int pat) {
     greatball();
     break;
   case 4:
-    colorWipe(ring.Color(0, 255, 0, 0)); // Red
+    colorWipe(ring.Color(0, 0, 255, 0)); // Red
     break;
   case 5:
-    ultraball();
+    ultraball(); // hangs here
     break;
   case 6:
-    theaterChaseRainbow();
+    rainbowCycle();
     break;
   case 7:
     colorWipe(ring.Color(0, 255, 0, 0)); // Red
     break;
   case 8:
-    rainbowCycle();
+    theaterChaseRainbow(50);
     break;
   }
 }
 
 // Pokeball pattern for rings
 void pokeball() {
-  int RGBWvalues[19][5]={{0, 0, 0, 0, 255},{1, 0, 0, 0, 255},{2, 0, 0, 0, 255},{3, 0, 0, 0, 255},{4, 0, 255, 0, 0},
-  {5, 0, 255, 0, 0},{6, 0, 255, 0, 0},{7, 0, 0, 0, 255},{8, 0, 0, 0, 255},{9, 0, 0, 0, 255},{10, 0, 0, 0, 255},
-  {11, 0, 0, 0, 255},{12, 0, 0, 0, 255},{13, 0, 255, 0, 0},{14, 0, 255, 0, 0},{15, 0, 255, 0, 0},{16, 0, 255, 0, 0},
-  {17, 0, 255, 0, 0},{18, 0, 255, 0, 0}};
+  int RGBWvalues[19][5]={
+    {0, 0, 0, 0, 255},{1, 0, 0, 0, 255},{2, 0, 0, 0, 255},{3, 0, 0, 0, 255},
+    {4, 0, 255, 0, 0},{5, 0, 255, 0, 0},{6, 0, 255, 0, 0},{7, 0, 0, 0, 255},
+    {8, 0, 0, 0, 255},{9, 0, 0, 0, 255},{10, 0, 0, 0, 255},{11, 0, 0, 0, 255},
+    {12, 0, 0, 0, 255},{13, 0, 255, 0, 0},{14, 0, 255, 0, 0},{15, 0, 255, 0, 0},
+    {16, 0, 255, 0, 0},{17, 0, 255, 0, 0},{18, 0, 255, 0, 0}};
   
-  for (int i = 0; i < 20; i++) {
-    for (int u = 0; u < 6; u++) {
-      ring.setPixelColor(RGBWvalues[i][u],RGBWvalues[i][u+1],RGBWvalues[i][u+2],RGBWvalues[i][u+3]);
-    }
+  for (int i = 0; i < (sizeof(RGBWvalues)/sizeof(RGBWvalues[0])); i++) {
+    ring.setPixelColor(RGBWvalues[i][0],RGBWvalues[i][1],RGBWvalues[i][2],RGBWvalues[i][3],
+    RGBWvalues[i][4]);
   }
   ring.show();
 }
 
 // Greatball pattern for rings
 void greatball() {
-  int RGBWvalues[19][5]={{0, 0, 0, 0, 255},{1, 0, 0, 0, 255},{2, 0, 0, 0, 255},{3, 0, 0, 0, 255},{4, 0, 0, 255, 0},
-  {5, 0, 0, 255, 0},{6, 0, 0, 255, 0},{7, 0, 0, 0, 255},{8, 0, 0, 0, 255},{9, 0, 0, 0, 255},{10, 0, 0, 0, 255},
-  {11, 0, 0, 0, 255},{12, 0, 0, 0, 255},{13, 0, 0, 255, 0},{14, 0, 255, 0, 0},{15, 0, 0, 255, 0},{16, 0, 0, 255, 0},
-  {17, 0, 255, 0, 0},{18, 0, 0, 155, 0}};
-
-  for (int i = 0; i < 20; i++) {
-    for (int u = 0; u < 6; u++) {
-      ring.setPixelColor(RGBWvalues[i][u],RGBWvalues[i][u+1],RGBWvalues[i][u+2],RGBWvalues[i][u+3]);
-    }
+  int RGBWvalues[19][5]={
+    {0, 0, 0, 0, 255},{1, 0, 0, 0, 255},{2, 0, 0, 0, 255},{3, 0, 0, 0, 255},
+    {4, 0, 0, 255, 0},{5, 0, 0, 255, 0},{6, 0, 0, 255, 0},{7, 0, 0, 0, 255},
+    {8, 0, 0, 0, 255},{9, 0, 0, 0, 255},{10, 0, 0, 0, 255},{11, 0, 0, 0, 255},
+    {12, 0, 0, 0, 255},{13, 0, 0, 255, 0},{14, 0, 255, 0, 0},{15, 0, 0, 255, 0},
+    {16, 0, 0, 255, 0},{17, 0, 255, 0, 0},{18, 0, 0, 155, 0}};
+  for (int i = 0; i < (sizeof(RGBWvalues)/sizeof(RGBWvalues[0])); i++) {
+    ring.setPixelColor(RGBWvalues[i][0],RGBWvalues[i][1],RGBWvalues[i][2],RGBWvalues[i][3],
+    RGBWvalues[i][4]);
   }
   ring.show();
 }
@@ -109,30 +112,14 @@ void greatball() {
 // Ultraball pattern for rings
 void ultraball() {
   int RGBWvalues[19][5]={
-    {0, 0, 0, 0, 255},
-    {1, 0, 0, 0, 255},
-    {2, 0, 0, 0, 255},
-    {3, 0, 0, 0, 255},
-    {4, 100, 255, 0, 0},
-    {5, 0, 0, 0, 0},
-    {6, 100, 255, 0, 0},
-    {7, 0, 0, 0, 255},
-    {8, 0, 0, 0, 255},
-    {9, 0, 0, 0, 255},
-    {10, 0, 0, 0, 255},
-    {11, 0, 0, 0, 255},
-    {12, 0, 0, 0, 255},
-    {13, 0, 0, 0, 0},
-    {14, 100, 255, 0, 0},
-    {15, 100, 255, 0, 0},
-    {16, 100, 255, 0, 0},
-    {17, 100, 255, 0, 0},
-    {18, 0, 0, 0, 0}};
-
-  for (int i = 0; i < 20; i++) {
-    for (int u = 0; u < 6; u++) {
-      ring.setPixelColor(RGBWvalues[i][u],RGBWvalues[i][u+1],RGBWvalues[i][u+2],RGBWvalues[i][u+3]);
-    }
+    {0, 0, 0, 0, 255},{1, 0, 0, 0, 255},{2, 0, 0, 0, 255},{3, 0, 0, 0, 255},
+    {4, 100, 255, 0, 0},{5, 0, 0, 0, 0},{6, 100, 255, 0, 0},{7, 0, 0, 0, 255},
+    {8, 0, 0, 0, 255},{9, 0, 0, 0, 255},{10, 0, 0, 0, 255},{11, 0, 0, 0, 255},
+    {12, 0, 0, 0, 255},{13, 0, 0, 0, 0},{14, 100, 255, 0, 0},{15, 100, 255, 0, 0},
+    {16, 100, 255, 0, 0},{17, 100, 255, 0, 0},{18, 0, 0, 0, 0}};
+  for (int i = 0; i < (sizeof(RGBWvalues)/sizeof(RGBWvalues[0])); i++) {
+    ring.setPixelColor(RGBWvalues[i][0],RGBWvalues[i][1],RGBWvalues[i][2],RGBWvalues[i][3],
+    RGBWvalues[i][4]);
   }
   ring.show();
 }
@@ -141,17 +128,17 @@ void ultraball() {
 // void conduit1() {
 //     uint8_t  i;
 //     i = random(128);
-//     strip.setPixelColor(i, color);
-//     strip.show();
-//     strip.setPixelColor(i, 0);
+//     conduitLeds.setPixelColor(i, color);
+//     conduitLeds.show();
+//     conduitLeds.setPixelColor(i, 0);
 // }
 
 // Solid color conduit
 void conduit2() {
   for(int i = 0; i < 8; i++){
-    strip.setPixelColor(i, color);
+    conduitLeds.setPixelColor(i, color);
   }
-  strip.show();
+  conduitLeds.show();
 }
 
 // Power meter
@@ -179,44 +166,21 @@ void rainbowCycle() {
 
 // TheaterChase
 //  modified from Adafruit example to make it a state machine
-void theaterChaseRainbow() {
-  static int j = 0, q = 0;
-  static boolean on = true;
+void theaterChaseRainbow(uint8_t wait) {
+  for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
+    for (int q=0; q < 3; q++) {
+      for (uint16_t i=0; i < ring.numPixels(); i=i+3) {
+        ring.setPixelColor(i+q, Wheel( (i+j) % 255));    //turn every third pixel on
+      }
+      ring.show();
 
-  if (on) {
+      delay(wait);
 
-    for (int i = 0; i < ring.numPixels(); i + 3) {
-      // turn every third pixel on
-      ring.setPixelColor(i + q, Wheel((i + j) % 255)); 
+      for (uint16_t i=0; i < ring.numPixels(); i=i+3) {
+        ring.setPixelColor(i+q, 0);        //turn every third pixel off
+      }
     }
-
-  } else {
-
-    for (int i = 0; i < ring.numPixels(); i + 3) {
-      // turn every third pixel off
-      ring.setPixelColor(i + q, 0);
-    }
-
   }
-  
-  // toggel pixelse on or off for next time
-  on = !on;
-  
-  // display
-  ring.show();
-  
-  // update the q variable on ever loop of the code
-  q++;
-  
-  if (q >= 3)
-  { // if it overflows reset it and update the J variable
-    q = 0;
-    j++;
-    if (j >= 256)
-      j = 0;
-  }
-  // time for next change to the display
-  lastUpdate = millis();
 }
 
 // ColorWipe
@@ -245,25 +209,27 @@ uint32_t Wheel(byte WheelPos) {
   WheelPos = 255 - WheelPos;
   if (WheelPos < 85)
   {
-    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+    return conduitLeds.Color(255 - WheelPos * 3, 0, WheelPos * 3);
   }
   if (WheelPos < 170)
   {
     WheelPos -= 85;
-    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+    return conduitLeds.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
   WheelPos -= 170;
-  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+  return conduitLeds.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
 void setup() {
-// This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
-// #if defined(__AVR_ATtiny85__)
-//   if (F_CPU == 16000000)
-//     clock_prescale_set(clock_div_1);
-// #endif
-  // End of trinket special code
+  // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
+  #if defined(__AVR_ATtiny85__)
+    if (F_CPU == 16000000)
+      clock_prescale_set(clock_div_1);
+  #endif
 
+  //Serial.begin(115200);
+  // End of trinket special code
+  delay(3000);
   // Configure NeoPixel pin for output.
   ring.begin();
   // Adjust output brightness. Does not immediately affect what's currently
@@ -274,13 +240,13 @@ void setup() {
   ring.show(); 
 
   // Configure NeoPixel pin for output.
-  strip.begin();
+  conduitLeds.begin();
   // Adjust output brightness. Does not immediately affect what's currently
   // displayed on the LEDs. The next call to show() will refresh the LEDs
   // at this level.
-  strip.setBrightness(255);
+  conduitLeds.setBrightness(255);
   // Initialize all pixels to 'off'
-  strip.show();
+  conduitLeds.show();
     
   //  meter.begin();
   //  meter.setBrightness(75);
@@ -291,7 +257,7 @@ static int pattern = 0, lastReading;
 
 void loop() {
   // conduit1();
-  // sets conduit led color to 0x0099FF(light blue)
+  // sets conduit led color to 0x0099FF(purple~ish)
   conduit2();
  
   if ((millis() - previousMillis) >= interval) {
