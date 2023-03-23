@@ -3,8 +3,8 @@
 #include <avr/power.h>
 #endif
 
-#define PIN 0
-#define PIN1 1
+#define PIN 5
+#define PIN1 4
 // #define PIN2 2
 
 // Parameter 1 = number of pixels in ring
@@ -15,20 +15,24 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel ring = Adafruit_NeoPixel(21, PIN, NEO_RGBW + NEO_KHZ800);
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN1, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel ring = Adafruit_NeoPixel(21, PIN, NEO_RGB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN1, NEO_RGB + NEO_KHZ800);
 // Adafruit_NeoPixel meter = Adafruit_NeoPixel(3, PIN2, NEO_RGBW + NEO_KHZ800);
 
-// 10 sec. frequency
-unsigned long interval = 10000;   // the time we need to wait
-unsigned long previousMillis = 0; // millis() returns an unsigned long.
+// 10 sec. wait time between pattern changes
+unsigned long interval = 10000;
+// millis() returns an unsigned long.
+unsigned long previousMillis = 0;
 
 // Assigned color for conduit flash
 uint32_t color = 0x0099FF;
 
-unsigned long patternInterval = 20;                              // time between steps in the pattern
-unsigned long lastUpdate = 0;                                    // for millis() when last update occoured
-unsigned long intervals[] = {20, 20, 20, 20, 20, 20, 20, 20, 2}; // speed for each pattern
+// time between steps in the pattern
+unsigned long patternInterval = 20;
+// for millis() when last update occoured
+unsigned long lastUpdate = 0;                                    
+// speed for each pattern
+unsigned long intervals[] = {20, 20, 20, 20, 20, 20, 20, 20, 2};
 
 void colorWipe(uint32_t c);
 void pokeball();
@@ -38,8 +42,8 @@ void theaterChaseRainbow();
 void rainbowCycle();
 uint32_t Wheel(byte WheelPos);
 
-void updatePattern(int pat)
-{ // call the pattern currently being created
+void changePattern(int pat) {
+ // selecting the next pattern
   switch (pat)
   {
   case 0:
@@ -73,8 +77,7 @@ void updatePattern(int pat)
 }
 
 // Pokeball pattern for rings
-void pokeball()
-{
+void pokeball() {
   ring.setPixelColor(0, 0, 0, 0, 255);
   ring.setPixelColor(1, 0, 0, 0, 255);
   ring.setPixelColor(2, 0, 0, 0, 255);
@@ -98,8 +101,7 @@ void pokeball()
 }
 
 // Greatball pattern for rings
-void greatball()
-{
+void greatball() {
   ring.setPixelColor(0, 0, 0, 0, 255);
   ring.setPixelColor(1, 0, 0, 0, 255);
   ring.setPixelColor(2, 0, 0, 0, 255);
@@ -123,8 +125,7 @@ void greatball()
 }
 
 // Ultraball pattern for rings
-void ultraball()
-{
+void ultraball() {
   ring.setPixelColor(0, 0, 0, 0, 255);
   ring.setPixelColor(1, 0, 0, 0, 255);
   ring.setPixelColor(2, 0, 0, 0, 255);
@@ -157,8 +158,7 @@ void ultraball()
 // }
 
 // Solid color conduit
-void conduit2()
-{
+void conduit2() {
   strip.setPixelColor(0, color);
   strip.setPixelColor(1, color);
   strip.setPixelColor(2, color);
@@ -180,8 +180,7 @@ void conduit2()
 
 // RainbowCycle
 //  modified from Adafruit example to make it a state machine
-void rainbowCycle()
-{
+void rainbowCycle() {
   static uint16_t j = 0;
   for (int i = 0; i < ring.numPixels(); i++)
   {
@@ -196,27 +195,35 @@ void rainbowCycle()
 
 // TheaterChase
 //  modified from Adafruit example to make it a state machine
-void theaterChaseRainbow()
-{
+void theaterChaseRainbow() {
   static int j = 0, q = 0;
   static boolean on = true;
-  if (on)
-  {
-    for (int i = 0; i < ring.numPixels(); i = i + 3)
-    {
-      ring.setPixelColor(i + q, Wheel((i + j) % 255)); // turn every third pixel on
+
+  if (on) {
+
+    for (int i = 0; i < ring.numPixels(); i + 3) {
+      // turn every third pixel on
+      ring.setPixelColor(i + q, Wheel((i + j) % 255)); 
     }
-  }
-  else
-  {
-    for (int i = 0; i < ring.numPixels(); i = i + 3)
-    {
-      ring.setPixelColor(i + q, 0); // turn every third pixel off
+
+  } else {
+
+    for (int i = 0; i < ring.numPixels(); i + 3) {
+      // turn every third pixel off
+      ring.setPixelColor(i + q, 0);
     }
+
   }
-  on = !on;    // toggel pixelse on or off for next time
-  ring.show(); // display
-  q++;         // update the q variable
+  
+  // toggel pixelse on or off for next time
+  on = !on;
+  
+  // display
+  ring.show();
+  
+  // update the q variable on ever loop of the code
+  q++;
+  
   if (q >= 3)
   { // if it overflows reset it and update the J variable
     q = 0;
@@ -224,13 +231,13 @@ void theaterChaseRainbow()
     if (j >= 256)
       j = 0;
   }
-  lastUpdate = millis(); // time for next change to the display
+  // time for next change to the display
+  lastUpdate = millis();
 }
 
 // ColorWipe
 //  modified from Adafruit example to make it a state machine
-void colorWipe(uint32_t c)
-{
+void colorWipe(uint32_t c) {
   static int i = 0;
   ring.setPixelColor(i, c);
   ring.show();
@@ -243,16 +250,14 @@ void colorWipe(uint32_t c)
 }
 
 // clear all LEDs
-void wipe()
-{
+void wipe() {
   for (int i = 0; i < ring.numPixels(); i++)
   {
     ring.setPixelColor(i, ring.Color(0, 0, 0));
   }
 }
 
-uint32_t Wheel(byte WheelPos)
-{
+uint32_t Wheel(byte WheelPos) {
   WheelPos = 255 - WheelPos;
   if (WheelPos < 85)
   {
@@ -267,8 +272,7 @@ uint32_t Wheel(byte WheelPos)
   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
 
-void setup()
-{
+void setup() {
 // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
 #if defined(__AVR_ATtiny85__)
   if (F_CPU == 16000000)
@@ -276,35 +280,49 @@ void setup()
 #endif
   // End of trinket special code
 
+  // Configure NeoPixel pin for output.
   ring.begin();
+  // Adjust output brightness. Does not immediately affect what's currently
+  // displayed on the LEDs. The next call to show() will refresh the LEDs
+  // at this level.
   ring.setBrightness(50);
-  ring.show(); // Initialize all pixels to 'off'
+  // Initialize all pixels to 'off'
+  ring.show(); 
+
+  // Configure NeoPixel pin for output.
   strip.begin();
+  // Adjust output brightness. Does not immediately affect what's currently
+  // displayed on the LEDs. The next call to show() will refresh the LEDs
+  // at this level.
   strip.setBrightness(15);
-  strip.show(); // Initialize all pixels to 'off'
+  // Initialize all pixels to 'off'
+  strip.show();
   //  meter.begin();
   //  meter.setBrightness(75);
   //  meter.show(); // Initialize all pixels to 'off'
 }
 
-void loop()
-{
-
+void loop() {
   static int pattern = 0, lastReading;
   // conduit1();
-  conduit2(); // sets led colors to purple
-  // replace delay(1000)
-  if ((millis() - previousMillis) >= interval)
-  {
+  // sets conduit led color to 0x0099FF(light blue)
+  conduit2();
+ 
+  if ((millis() - previousMillis) >= interval) {
     previousMillis = millis();
     // every first second
     pattern++;
-    if (pattern > 8)
-      pattern = 0;                        // wrap around if too big
-    patternInterval = intervals[pattern]; // set speed for this pattern
-    wipe();                               // clear out the buffer
+    
+    // wrap around if too big
+    if (pattern > 8) {
+      pattern = 0;
+    }
+    // set speed for this pattern
+    patternInterval = intervals[pattern];
+    // clear out the buffer
+    wipe();
   }
   if ((millis() - lastUpdate) > patternInterval)
-    updatePattern(pattern);
+    changePattern(pattern);
   //  power();
 }
