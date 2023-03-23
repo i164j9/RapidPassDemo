@@ -3,9 +3,9 @@
 #include <avr/power.h>
 #endif
 
-#define PIN 5
-#define PIN1 4
-#define PIN2 2
+#define RING_PIN 5
+#define CONDUIT_PIN 4
+#define METER_PIN 6
 
 // Parameter 1 = number of pixels in ring
 // Parameter 2 = Arduino pin number (most are valid)
@@ -15,12 +15,12 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel ring = Adafruit_NeoPixel(21, PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel conduitLeds = Adafruit_NeoPixel(8, PIN1, NEO_GRB + NEO_KHZ800);
-// Adafruit_NeoPixel meter = Adafruit_NeoPixel(3, PIN2, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel ring = Adafruit_NeoPixel(21, RING_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel conduitLeds = Adafruit_NeoPixel(CONDUIT_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel meter = Adafruit_NeoPixel(3, RING_PIN, NEO_GRB + NEO_KHZ800);
 
 // 10 sec. wait time between pattern changes
-unsigned long interval = 5000;
+unsigned long interval = 10000;
 // millis() returns an unsigned long.
 unsigned long previousMillis = 0;
 
@@ -32,7 +32,7 @@ unsigned long patternInterval = 5;
 // for millis() when last update occoured
 unsigned long lastUpdate = 0;                                    
 // speed for each pattern
-unsigned long intervals[] = {10};
+unsigned long intervals[5] = {20};
 
 void colorWipe(uint32_t c);
 void pokeball();
@@ -55,25 +55,25 @@ void changePattern(int pat) {
     pokeball();
     break;
   case 2:
-    colorWipe(ring.Color(0, 255, 0, 0)); // Red
+    colorWipe(ring.Color(255, 0, 0, 0)); // Red
     break;
   case 3:
     greatball();
     break;
   case 4:
-    colorWipe(ring.Color(0, 0, 255, 0)); // Red
+    colorWipe(ring.Color(255, 0, 0, 0)); // Red
     break;
   case 5:
-    ultraball(); // hangs here
+    ultraball();
     break;
   case 6:
     rainbowCycle();
     break;
   case 7:
-    colorWipe(ring.Color(0, 255, 0, 0)); // Red
+    colorWipe(ring.Color(255, 0, 0, 0)); // Red
     break;
   case 8:
-    theaterChaseRainbow(50);
+    theaterChaseRainbow(60);
     break;
   }
 }
@@ -124,17 +124,17 @@ void ultraball() {
   ring.show();
 }
 
-// Randomly flicker all 8 conduit port lights one at a time.
-// void conduit1() {
-//     uint8_t  i;
-//     i = random(128);
-//     conduitLeds.setPixelColor(i, color);
-//     conduitLeds.show();
-//     conduitLeds.setPixelColor(i, 0);
-// }
+//Randomly flicker all 8 conduit port lights one at a time.
+void conduitFlicker() {
+    uint8_t  i;
+    i = random(128);
+    conduitLeds.setPixelColor(i, color);
+    conduitLeds.show();
+    conduitLeds.setPixelColor(i, 0);
+}
 
 // Solid color conduit
-void conduit2() {
+void conduitSolid() {
   for(int i = 0; i < 8; i++){
     conduitLeds.setPixelColor(i, color);
   }
@@ -142,12 +142,12 @@ void conduit2() {
 }
 
 // Power meter
-// void power() {
-//   meter.setPixelColor(0, 0, 255, 0, 0);
-//   meter.setPixelColor(1, 255, 0, 0, 0);
-//   meter.setPixelColor(2, 255, 0, 0, 0);
-//   meter.show();
-// }
+void power() {
+  meter.setPixelColor(0, 0, 255, 0, 0);
+  meter.setPixelColor(1, 255, 0, 0, 0);
+  meter.setPixelColor(2, 255, 0, 0, 0);
+  meter.show();
+}
 
 // RainbowCycle
 //  modified from Adafruit example to make it a state machine
@@ -248,18 +248,17 @@ void setup() {
   // Initialize all pixels to 'off'
   conduitLeds.show();
     
-  //  meter.begin();
-  //  meter.setBrightness(75);
-  //  meter.show(); // Initialize all pixels to 'off'
+   meter.begin();
+   meter.setBrightness(75);
+   meter.show(); // Initialize all pixels to 'off'
 }
 
 static int pattern = 0, lastReading;
 
 void loop() {
-  // conduit1();
   // sets conduit led color to 0x0099FF(purple~ish)
-  conduit2();
- 
+  conduitSolid();
+  //conduitFlicker();
   if ((millis() - previousMillis) >= interval) {
     previousMillis = millis();
     pattern++;
@@ -278,5 +277,5 @@ void loop() {
   
   if ((millis() - lastUpdate) > patternInterval)
     changePattern(pattern);
-  //  power();
+    power();
 }
