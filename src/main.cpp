@@ -3,6 +3,22 @@
 #include <avr/power.h>
 #endif
 
+/* the case for this code:
+https://www.thingiverse.com/thing:3695499
+
+https://www.adafruit.com/product/2853 - NeoPixel ring - 12 smd5050 RGBW leds
+https://www.adafruit.com/product/2860 - neoPixel jewel - 7 smd5050 RGBW leds
+https://www.adafruit.com/product/1938 - diffused 5mm tht leds
+https://www.adafruit.com/product/1769 - connector
+https://www.adafruit.com/product/1304 - usb lipo charger
+https://www.adafruit.com/product/1903 - boost converter
+https://www.adafruit.com/product/1578 - 3.7v lipo
+https://www.adafruit.com/product/1501 - trinket 5v
+*/
+
+// true if you want the conduit solid
+// false if you want them to flash
+#define solidConduit true
 
 #if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__)
   //this will compile for Arduino UNO, Pro and older boards
@@ -290,9 +306,12 @@ void setup() {
 static int pattern = 0, lastReading;
 
 void loop() {
+  #if solidConduit == true
   // sets conduit led color to 0x0099FF(purple~ish)
-  conduitSolid();
-  //conduitFlicker();
+    conduitSolid();
+  #else
+    conduitFlicker();
+  #endif
   if ((millis() - previousMillis) >= interval) {
     previousMillis = millis();
     pattern++;
