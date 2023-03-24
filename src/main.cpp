@@ -3,9 +3,29 @@
 #include <avr/power.h>
 #endif
 
-#define RING_PIN 5
-#define CONDUIT_PIN 4
-#define METER_PIN 18
+
+#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__)
+  //this will compile for Arduino UNO, Pro and older boards
+  #define RING_PIN 6
+  #define CONDUIT_PIN 7
+  #define METER_PIN 8
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+  //this will compile for Arduino Mega
+  #define RING_PIN 8
+  #define CONDUIT_PIN 9
+  #define METER_PIN 10
+#elif defined ESP32
+  // for the ESP-WROVER 32
+  // Output for ESP32. Pins 6-11 are connected to SPI flash.
+  #define RING_PIN 18
+  #define CONDUIT_PIN 19
+  #define METER_PIN 23
+#elif defined __AVR_ATtiny85__
+// adafruit trinket
+  #define RING_PIN 0
+  #define CONDUIT_PIN 1
+  #define METER_PIN 2
+#endif
 
 #define NUM_CONDUIT_LEDS  8
 #define NUM_RING_LEDS 21
@@ -25,20 +45,26 @@ Adafruit_NeoPixel meter = Adafruit_NeoPixel(NUM_METER_LEDS, METER_PIN, NEO_GRB +
 
 // 10 sec. wait time between pattern changes
 unsigned long interval = 10000;
+
 // millis() returns an unsigned long.
 unsigned long previousMillis = 0;
 
 // Assigned color for conduit flash
 uint32_t color = 0x0099FF;
 
+// delay for colorWipe
+uint8_t dly = 5;
+
 // time between steps in the pattern
 unsigned long patternInterval = 5;
+
 // for millis() when last update occoured
 unsigned long lastUpdate = 0;                                    
+
 // speed for each pattern
 unsigned long intervals[5] = {20};
 
-void colorWipe(uint32_t c);
+void colorWipe(uint32_t c, uint8_t wait);
 void pokeball();
 void greatball();
 void ultraball();
@@ -49,23 +75,23 @@ void wipe();
 uint32_t Wheel(byte);
 
 void changePattern(int pat) {
- // selecting the next pattern
+ // select the next pattern
   switch (pat)
   {
   case 0:
-    colorWipe(ring.Color(0, 255, 0, 0)); // Red
+    colorWipe(ring.Color(0, 255, 0, 0),dly); // Red
     break;
   case 1:
     pokeball();
     break;
   case 2:
-    colorWipe(ring.Color(0, 255, 0, 0)); // Red
+    colorWipe(ring.Color(0, 255, 0, 0),dly); // Red
     break;
   case 3:
     greatball();
     break;
   case 4:
-    colorWipe(ring.Color(0, 255, 0, 0)); // Red
+    colorWipe(ring.Color(0, 255, 0, 0),dly); // Red
     break;
   case 5:
     ultraball();
@@ -74,7 +100,7 @@ void changePattern(int pat) {
     rainbowCycle(1);
     break;
   case 7:
-    colorWipe(ring.Color(0, 255, 0, 0)); // Red
+    colorWipe(ring.Color(0, 255, 0, 0),dly); // Red
     break;
   case 8:
     theaterChaseRainbow(60);
@@ -163,8 +189,8 @@ void power() {
 // RainbowCycle
 void rainbowCycle(uint8_t wait) {
   uint16_t i, j;
-
-  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
+  // 5 cycles of all colors on wheel
+  for(j=0; j<256*5; j++) { 
     for(i=0; i< ring.numPixels(); i++) {
       ring.setPixelColor(i, Wheel(((i * 256 / ring.numPixels()) + j) & 255));
     }
@@ -193,17 +219,13 @@ void theaterChaseRainbow(uint8_t wait) {
 
 
 // ColorWipe
-//  modified from Adafruit example to make it a state machine
-void colorWipe(uint32_t c) {
-  static int i = 0;
-  ring.setPixelColor(i, c);
-  ring.show();
-  i++;
-  if (i >= ring.numPixels())
-  {
-    i = 0;
+// c - color, wait - delay in ms
+void colorWipe(uint32_t c, uint8_t wait) {
+  for(uint16_t i=0; i<ring.numPixels(); i++) {
+    ring.setPixelColor(i, c);
+    ring.show();
+    delay(wait);
   }
-  lastUpdate = millis(); // time for next change to the display
 }
 
 
