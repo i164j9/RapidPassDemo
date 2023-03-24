@@ -5,7 +5,11 @@
 
 #define RING_PIN 5
 #define CONDUIT_PIN 4
-#define METER_PIN 6
+#define METER_PIN 18
+
+#define NUM_CONDUIT_LEDS  8
+#define NUM_RING_LEDS 21
+#define NUM_METER_LEDS  3
 
 // Parameter 1 = number of pixels in ring
 // Parameter 2 = Arduino pin number (most are valid)
@@ -15,9 +19,9 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel ring = Adafruit_NeoPixel(21, RING_PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel conduitLeds = Adafruit_NeoPixel(CONDUIT_PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel meter = Adafruit_NeoPixel(3, RING_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel ring = Adafruit_NeoPixel(NUM_RING_LEDS, RING_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel conduitLeds = Adafruit_NeoPixel(NUM_CONDUIT_LEDS, CONDUIT_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel meter = Adafruit_NeoPixel(NUM_METER_LEDS, METER_PIN, NEO_GRB + NEO_KHZ800);
 
 // 10 sec. wait time between pattern changes
 unsigned long interval = 10000;
@@ -38,39 +42,39 @@ void colorWipe(uint32_t c);
 void pokeball();
 void greatball();
 void ultraball();
-void theaterChaseRainbow(uint8_t wait);
-void rainbowCycle();
+void theaterChaseRainbow(uint8_t);
+void rainbowCycle(uint8_t);
 void wipe();
 
-uint32_t Wheel(byte WheelPos);
+uint32_t Wheel(byte);
 
 void changePattern(int pat) {
  // selecting the next pattern
   switch (pat)
   {
   case 0:
-    colorWipe(ring.Color(255, 0, 0, 0)); // Red
+    colorWipe(ring.Color(0, 255, 0, 0)); // Red
     break;
   case 1:
     pokeball();
     break;
   case 2:
-    colorWipe(ring.Color(255, 0, 0, 0)); // Red
+    colorWipe(ring.Color(0, 255, 0, 0)); // Red
     break;
   case 3:
     greatball();
     break;
   case 4:
-    colorWipe(ring.Color(255, 0, 0, 0)); // Red
+    colorWipe(ring.Color(0, 255, 0, 0)); // Red
     break;
   case 5:
     ultraball();
     break;
   case 6:
-    rainbowCycle();
+    rainbowCycle(1);
     break;
   case 7:
-    colorWipe(ring.Color(255, 0, 0, 0)); // Red
+    colorWipe(ring.Color(0, 255, 0, 0)); // Red
     break;
   case 8:
     theaterChaseRainbow(60);
@@ -78,9 +82,10 @@ void changePattern(int pat) {
   }
 }
 
+
 // Pokeball pattern for rings
 void pokeball() {
-  int RGBWvalues[19][5]={
+  static int RGBWvalues[19][5]={
     {0, 0, 0, 0, 255},{1, 0, 0, 0, 255},{2, 0, 0, 0, 255},{3, 0, 0, 0, 255},
     {4, 0, 255, 0, 0},{5, 0, 255, 0, 0},{6, 0, 255, 0, 0},{7, 0, 0, 0, 255},
     {8, 0, 0, 0, 255},{9, 0, 0, 0, 255},{10, 0, 0, 0, 255},{11, 0, 0, 0, 255},
@@ -94,9 +99,10 @@ void pokeball() {
   ring.show();
 }
 
+
 // Greatball pattern for rings
 void greatball() {
-  int RGBWvalues[19][5]={
+  static int RGBWvalues[19][5]={
     {0, 0, 0, 0, 255},{1, 0, 0, 0, 255},{2, 0, 0, 0, 255},{3, 0, 0, 0, 255},
     {4, 0, 0, 255, 0},{5, 0, 0, 255, 0},{6, 0, 0, 255, 0},{7, 0, 0, 0, 255},
     {8, 0, 0, 0, 255},{9, 0, 0, 0, 255},{10, 0, 0, 0, 255},{11, 0, 0, 0, 255},
@@ -109,9 +115,10 @@ void greatball() {
   ring.show();
 }
 
+
 // Ultraball pattern for rings
 void ultraball() {
-  int RGBWvalues[19][5]={
+  static int RGBWvalues[19][5]={
     {0, 0, 0, 0, 255},{1, 0, 0, 0, 255},{2, 0, 0, 0, 255},{3, 0, 0, 0, 255},
     {4, 100, 255, 0, 0},{5, 0, 0, 0, 0},{6, 100, 255, 0, 0},{7, 0, 0, 0, 255},
     {8, 0, 0, 0, 255},{9, 0, 0, 0, 255},{10, 0, 0, 0, 255},{11, 0, 0, 0, 255},
@@ -124,6 +131,7 @@ void ultraball() {
   ring.show();
 }
 
+
 //Randomly flicker all 8 conduit port lights one at a time.
 void conduitFlicker() {
     uint8_t  i;
@@ -133,6 +141,7 @@ void conduitFlicker() {
     conduitLeds.setPixelColor(i, 0);
 }
 
+
 // Solid color conduit
 void conduitSolid() {
   for(int i = 0; i < 8; i++){
@@ -140,6 +149,7 @@ void conduitSolid() {
   }
   conduitLeds.show();
 }
+
 
 // Power meter
 void power() {
@@ -149,39 +159,38 @@ void power() {
   meter.show();
 }
 
+
 // RainbowCycle
-//  modified from Adafruit example to make it a state machine
-void rainbowCycle() {
-  static uint16_t j = 0;
-  for (int i = 0; i < ring.numPixels(); i++)
-  {
-    ring.setPixelColor(i, Wheel(((i * 256 / ring.numPixels()) + j) & 255));
+void rainbowCycle(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
+    for(i=0; i< ring.numPixels(); i++) {
+      ring.setPixelColor(i, Wheel(((i * 256 / ring.numPixels()) + j) & 255));
+    }
+    ring.show();
+    delay(wait);
   }
-  ring.show();
-  j++;
-  if (j >= 256 * 5)
-    j = 0;
-  lastUpdate = millis(); // time for next change to the display
 }
+
 
 // TheaterChase
 //  modified from Adafruit example to make it a state machine
 void theaterChaseRainbow(uint8_t wait) {
   for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
     for (int q=0; q < 3; q++) {
-      for (uint16_t i=0; i < ring.numPixels(); i=i+3) {
+      for (uint16_t i=0; i < ring.numPixels(); i+=3) {
         ring.setPixelColor(i+q, Wheel( (i+j) % 255));    //turn every third pixel on
       }
       ring.show();
-
       delay(wait);
-
-      for (uint16_t i=0; i < ring.numPixels(); i=i+3) {
+      for (uint16_t i=0; i < ring.numPixels(); i+=3) {
         ring.setPixelColor(i+q, 0);        //turn every third pixel off
       }
     }
   }
 }
+
 
 // ColorWipe
 //  modified from Adafruit example to make it a state machine
@@ -197,6 +206,7 @@ void colorWipe(uint32_t c) {
   lastUpdate = millis(); // time for next change to the display
 }
 
+
 // clear all LEDs
 void wipe() {
   for (int i = 0; i < ring.numPixels(); i++)
@@ -204,6 +214,7 @@ void wipe() {
     ring.setPixelColor(i, ring.Color(0, 0, 0));
   }
 }
+
 
 uint32_t Wheel(byte WheelPos) {
   WheelPos = 255 - WheelPos;
@@ -219,6 +230,7 @@ uint32_t Wheel(byte WheelPos) {
   WheelPos -= 170;
   return conduitLeds.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
+
 
 void setup() {
   // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
@@ -271,11 +283,11 @@ void loop() {
     // set speed for this pattern
     patternInterval = intervals[pattern];
     
-    // clear out the buffer
+    // reset leds to black/off
     wipe();
   }
   
   if ((millis() - lastUpdate) > patternInterval)
     changePattern(pattern);
-    power();
+    //power();
 }
