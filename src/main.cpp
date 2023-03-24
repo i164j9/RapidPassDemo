@@ -18,7 +18,8 @@ https://www.adafruit.com/product/1501 - trinket 5v
 
 // true if you want the conduit solid
 // false if you want them to flash
-#define solidConduit true
+#define solidConduit  true
+#define enablePowerMeter  false
 
 #if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__)
   //this will compile for Arduino UNO, Pro and older boards
@@ -330,5 +331,7 @@ void loop() {
   
   if ((millis() - lastUpdate) > patternInterval)
     changePattern(pattern);
-    //power();
+    #if enablePowerMeter == true
+      power();
+    #endif
 }
